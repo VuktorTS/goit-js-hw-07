@@ -2,6 +2,9 @@ import { galleryItems } from "./gallery-items.js";
 // Change code below this line
 const listGallery = document.querySelector(".gallery");
 
+listGallery.insertAdjacentHTML("beforeend", renderMarkup(galleryItems));
+listGallery.addEventListener("click", onClick);
+
 function renderMarkup(galleryItems) {
   return galleryItems
     .map(({ description, original, preview }) => {
@@ -21,9 +24,6 @@ function renderMarkup(galleryItems) {
     .join("");
 }
 
-listGallery.insertAdjacentHTML("beforeend", renderMarkup(galleryItems));
-listGallery.addEventListener("click", onClick);
-
 function onClick(event) {
   event.preventDefault();
 
@@ -31,12 +31,26 @@ function onClick(event) {
     return;
   }
 
-  const instance = basicLightbox.create(`
+  const instance = basicLightbox.create(
+    `
 	    <img
             src="${event.target.dataset.source}"
             alt="${event.target.alt}"
         />
-`);
-
+`,
+    {
+      onShow: () => {
+        window.addEventListener("keydown", onCloseModal);
+      },
+      onClose: () => {
+        window.removeEventListener("keydown", onCloseModal);
+      },
+    }
+  );
+  function onCloseModal(event) {
+    if (event.code === "Escape") {
+      instance.close(() => console.log("lightbox not visible anymore"));
+    }
+  }
   instance.show();
 }
